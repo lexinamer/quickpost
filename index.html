@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Post</title>
+<style>
+  :root {
+    --bg: #FAFAF8;
+    --ink: #181816;
+    --secondary: #8A8680;
+    --line: #EDEAE4;
+    --accent: #5B7A6D;
+    --accent-dim: #eef2f0;
+    --error: #B3492F;
+    --error-dim: #fbeeea;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    min-height: 100vh;
+  }
+
+  .frame {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px 16px 24px;
+  }
+
+  .topbar button {
+    font-size: 16px;
+    color: var(--secondary);
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+  }
+
+  .topbar .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--secondary);
+    font-weight: 600;
+  }
+
+  .gear {
+    font-size: 18px;
+    line-height: 1;
+    width: 40px;
+    text-align: right;
+  }
+
+  .content {
+    flex: 1;
+    padding: 8px 24px 0 24px;
+  }
+
+  .title-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--ink);
+    font-size: 30px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    padding: 8px 0 16px 0;
+    font-family: inherit;
+    outline: none;
+    line-height: 1.25;
+  }
+  .title-input::placeholder { color: #C7C3BB; }
+
+  .meta-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 20px;
+  }
+
+  .meta-row input[type="datetime-local"] {
+    font-size: 14px;
+    color: var(--secondary);
+    background: none;
+    border: none;
+    padding: 6px 0;
+    font-family: inherit;
+    outline: none;
+    width: 100%;
+  }
+
+  .body-input {
+    width: 100%;
+    min-height: 160px;
+    background: transparent;
+    border: none;
+    color: var(--ink);
+    font-size: 17px;
+    line-height: 1.6;
+    padding: 0;
+    font-family: inherit;
+    outline: none;
+    resize: none;
+  }
+  .body-input::placeholder { color: #C7C3BB; }
+
+  .section-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--secondary);
+    margin: 28px 0 12px 0;
+  }
+
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding-bottom: 8px;
+  }
+
+  .photo-tile {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 10px;
+    background: #EFECE6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: var(--secondary);
+    font-size: 20px;
+  }
+  .photo-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .photo-tile .remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(24,24,22,0.65);
+    color: #fff;
+    font-size: 13px;
+    line-height: 20px;
+    text-align: center;
+    border: none;
+    padding: 0;
+  }
+
+  .photo-tile.add {
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--secondary);
+    font-size: 24px;
+    font-weight: 300;
+  }
+  .photo-tile.add input { display: none; }
+
+  .footer {
+    padding: 20px 24px 28px 24px;
+  }
+
+  .publish-btn {
+    width: 100%;
+    padding: 16px 0;
+    border-radius: 12px;
+    background: var(--accent);
+    color: #FFFFFF;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    font-family: inherit;
+  }
+  .publish-btn:active { opacity: 0.85; }
+  .publish-btn:disabled { opacity: 0.5; }
+
+  .footer-note {
+    text-align: center;
+    font-size: 12px;
+    color: var(--secondary);
+    margin-top: 12px;
+  }
+
+  .status-banner {
+    display: none;
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 12px 14px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+  }
+  .status-banner.show { display: block; }
+  .status-banner.info { background: var(--accent-dim); color: var(--accent); }
+  .status-banner.error { background: var(--error-dim); color: var(--error); }
+  .status-banner a { color: inherit; font-weight: 600; }
+
+  ::selection { background: var(--accent-dim); }
+
+  /* Settings overlay */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+  .overlay.show { display: block; }
+
+  .overlay-inner {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 18px 24px 24px 24px;
+  }
+
+  .field-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--secondary);
+    margin: 20px 0 8px 0;
+  }
+  .field-label:first-child { margin-top: 0; }
+
+  .settings-input {
+    width: 100%;
+    background: #F2EFE9;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 15px;
+    color: var(--ink);
+    font-family: inherit;
+    outline: none;
+  }
+
+  .help-text {
+    font-size: 12px;
+    color: var(--secondary);
+    line-height: 1.5;
+    margin-top: 24px;
+  }
+
+  .save-btn {
+    width: 100%;
+    padding: 16px 0;
+    border-radius: 12px;
+    background: var(--accent);
+    color: #FFFFFF;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    font-family: inherit;
+    margin-top: 28px;
+  }
+</style>
+</head>
+<body>
+
+<div class="frame">
+
+  <div class="topbar">
+    <button id="cancelBtn">Cancel</button>
+    <span class="eyebrow">New Post</span>
+    <button class="gear" id="openSettings">⚙</button>
+  </div>
+
+  <div class="content">
+
+    <div id="statusBanner" class="status-banner"></div>
+
+    <input class="title-input" id="titleInput" placeholder="Title">
+
+    <div class="meta-row">
+      <input type="datetime-local" id="dateInput">
+    </div>
+
+    <textarea class="body-input" id="bodyInput" placeholder="Start writing..."></textarea>
+
+    <div class="section-label">Photos</div>
+    <div class="photo-grid" id="photoGrid">
+      <label class="photo-tile add">
+        +
+        <input type="file" id="photoInput" accept="image/*" multiple>
+      </label>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <button class="publish-btn" id="publishBtn">Publish</button>
+    <div class="footer-note">Posts to your site with the Meow Gallery</div>
+  </div>
+
+</div>
+
+<!-- Settings overlay -->
+<div class="overlay" id="settingsOverlay">
+  <div class="overlay-inner">
+    <div class="topbar" style="padding-left:0;padding-right:0;">
+      <button id="closeSettings">Close</button>
+      <span class="eyebrow">Settings</span>
+      <span style="width:40px"></span>
+    </div>
+
+    <div class="field-label">Site URL</div>
+    <input class="settings-input" id="siteUrlInput" placeholder="https://yoursite.com" autocapitalize="off" autocorrect="off">
+
+    <div class="field-label">Username</div>
+    <input class="settings-input" id="usernameInput" placeholder="your WordPress username" autocapitalize="off" autocorrect="off">
+
+    <div class="field-label">Application Password</div>
+    <input class="settings-input" id="appPasswordInput" placeholder="xxxx xxxx xxxx xxxx xxxx xxxx" autocapitalize="off" autocorrect="off">
+
+    <div class="help-text">
+      Generate this under Users → Profile → Application Passwords in your WordPress admin. Stored only on this device, in this browser.
+    </div>
+
+    <div class="help-text" style="margin-top:20px;">
+      <strong style="color:var(--ink);">Recommended setup</strong><br>
+      • Use a dedicated Author or Editor account for this app — not your Admin login<br>
+      • Lock CORS on your site to this app's exact URL, not a wildcard<br>
+      • Revoke the application password from your WordPress profile any time you stop using this app
+    </div>
+
+    <button class="save-btn" id="saveSettings">Save</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  const STORAGE_KEY = 'wpPosterSettings';
+
+  const els = {
+    title: document.getElementById('titleInput'),
+    date: document.getElementById('dateInput'),
+    body: document.getElementById('bodyInput'),
+    photoGrid: document.getElementById('photoGrid'),
+    photoInput: document.getElementById('photoInput'),
+    publishBtn: document.getElementById('publishBtn'),
+    statusBanner: document.getElementById('statusBanner'),
+    cancelBtn: document.getElementById('cancelBtn'),
+    openSettings: document.getElementById('openSettings'),
+    closeSettings: document.getElementById('closeSettings'),
+    settingsOverlay: document.getElementById('settingsOverlay'),
+    siteUrl: document.getElementById('siteUrlInput'),
+    username: document.getElementById('usernameInput'),
+    appPassword: document.getElementById('appPasswordInput'),
+    saveSettings: document.getElementById('saveSettings'),
+  };
+
+  let photos = []; // { file, url }
+
+  function loadSettings() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function saveSettingsToStorage(settings) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  }
+
+  function getSettings() {
+    return loadSettings() || { siteUrl: '', username: '', appPassword: '' };
+  }
+
+  function openSettingsPanel() {
+    const s = getSettings();
+    els.siteUrl.value = s.siteUrl || '';
+    els.username.value = s.username || '';
+    els.appPassword.value = s.appPassword || '';
+    els.settingsOverlay.classList.add('show');
+  }
+
+  function closeSettingsPanel() {
+    els.settingsOverlay.classList.remove('show');
+  }
+
+  els.openSettings.addEventListener('click', openSettingsPanel);
+  els.closeSettings.addEventListener('click', closeSettingsPanel);
+
+  els.saveSettings.addEventListener('click', function () {
+    const settings = {
+      siteUrl: els.siteUrl.value.trim().replace(/\/$/, ''),
+      username: els.username.value.trim(),
+      appPassword: els.appPassword.value.trim(),
+    };
+    saveSettingsToStorage(settings);
+    closeSettingsPanel();
+  });
+
+  // Default date/time to now
+  function toLocalDatetimeValue(d) {
+    const pad = n => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+      'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+  els.date.value = toLocalDatetimeValue(new Date());
+
+  // Photo handling
+  function renderPhotos() {
+    const tiles = els.photoGrid.querySelectorAll('.photo-tile:not(.add)');
+    tiles.forEach(t => t.remove());
+
+    const addTile = els.photoGrid.querySelector('.add');
+
+    photos.forEach((p, idx) => {
+      const tile = document.createElement('div');
+      tile.className = 'photo-tile';
+      const img = document.createElement('img');
+      img.src = p.url;
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove';
+      removeBtn.textContent = '×';
+      removeBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        photos.splice(idx, 1);
+        renderPhotos();
+      });
+      tile.appendChild(img);
+      tile.appendChild(removeBtn);
+      els.photoGrid.insertBefore(tile, addTile);
+    });
+  }
+
+  els.photoInput.addEventListener('change', function (e) {
+    const files = Array.from(e.target.files || []);
+    files.forEach(file => {
+      photos.push({ file: file, url: URL.createObjectURL(file) });
+    });
+    renderPhotos();
+    e.target.value = '';
+  });
+
+  function showStatus(message, type, html) {
+    els.statusBanner.className = 'status-banner show ' + type;
+    if (html) {
+      els.statusBanner.innerHTML = message;
+    } else {
+      els.statusBanner.textContent = message;
+    }
+  }
+
+  function hideStatus() {
+    els.statusBanner.className = 'status-banner';
+  }
+
+  function resetForm() {
+    els.title.value = '';
+    els.body.value = '';
+    photos = [];
+    renderPhotos();
+    els.date.value = toLocalDatetimeValue(new Date());
+  }
+
+  function authHeader(settings) {
+    const token = btoa(settings.username + ':' + settings.appPassword.replace(/\s+/g, ''));
+    return 'Basic ' + token;
+  }
+
+  async function uploadPhoto(settings, file, index, total) {
+    showStatus('Uploading photo ' + (index + 1) + ' of ' + total + '…', 'info');
+    const res = await fetch(settings.siteUrl + '/wp-json/wp/v2/media', {
+      method: 'POST',
+      headers: {
+        'Authorization': authHeader(settings),
+        'Content-Disposition': 'attachment; filename="' + file.name.replace(/"/g, '') + '"',
+        'Content-Type': file.type || 'application/octet-stream',
+      },
+      body: file,
+    });
+    if (!res.ok) {
+      let detail = '';
+      try {
+        const j = await res.json();
+        detail = j.message || '';
+      } catch (e) {}
+      throw new Error('Photo upload failed (' + res.status + '). ' + detail);
+    }
+    const json = await res.json();
+    return json.id;
+  }
+
+  async function createPost(settings, mediaIds) {
+    showStatus('Publishing post…', 'info');
+
+    let content = els.body.value.trim();
+    if (mediaIds.length) {
+      content += (content ? '\n\n' : '') + '[gallery ids="' + mediaIds.join(',') + '"]';
+    }
+
+    const dateValue = els.date.value; // e.g. 2026-08-06T14:12
+    const dateFormatted = dateValue.length === 16 ? dateValue + ':00' : dateValue;
+
+    const res = await fetch(settings.siteUrl + '/wp-json/wp/v2/posts', {
+      method: 'POST',
+      headers: {
+        'Authorization': authHeader(settings),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: els.title.value.trim() || '(Untitled)',
+        content: content,
+        date: dateFormatted,
+        status: 'publish',
+      }),
+    });
+
+    if (!res.ok) {
+      let detail = '';
+      try {
+        const j = await res.json();
+        detail = j.message || '';
+      } catch (e) {}
+      throw new Error('Publishing failed (' + res.status + '). ' + detail);
+    }
+
+    return res.json();
+  }
+
+  els.publishBtn.addEventListener('click', async function () {
+    const settings = getSettings();
+
+    if (!settings.siteUrl || !settings.username || !settings.appPassword) {
+      showStatus('Add your site URL, username, and application password in Settings first.', 'error');
+      openSettingsPanel();
+      return;
+    }
+
+    if (!els.title.value.trim() && !els.body.value.trim() && photos.length === 0) {
+      showStatus('Nothing to publish yet.', 'error');
+      return;
+    }
+
+    els.publishBtn.disabled = true;
+
+    try {
+      const mediaIds = [];
+      for (let i = 0; i < photos.length; i++) {
+        const id = await uploadPhoto(settings, photos[i].file, i, photos.length);
+        mediaIds.push(id);
+      }
+
+      const post = await createPost(settings, mediaIds);
+
+      showStatus(
+        'Published — <a href="' + post.link + '" target="_blank" rel="noopener">view post</a>',
+        'info',
+        true
+      );
+      resetForm();
+    } catch (err) {
+      let msg = err.message || 'Something went wrong.';
+      if (err instanceof TypeError) {
+        msg = 'Could not reach your site. This is usually a CORS setting on your WordPress site — see setup notes.';
+      }
+      showStatus(msg, 'error');
+    } finally {
+      els.publishBtn.disabled = false;
+    }
+  });
+
+  els.cancelBtn.addEventListener('click', function () {
+    if (confirm('Discard this post?')) {
+      resetForm();
+      hideStatus();
+    }
+  });
+
+  // Open settings automatically on first run
+  if (!loadSettings()) {
+    openSettingsPanel();
+  }
+})();
+</script>
+
+</body>
+</html>
