@@ -30,12 +30,14 @@
     color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     min-height: 100vh;
+    min-height: 100dvh;
   }
 
   .frame {
     max-width: 480px;
     margin: 0 auto;
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
   }
@@ -44,7 +46,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 18px 24px 16px 24px;
+    padding: 14px 20px 10px 20px;
   }
 
   .topbar button {
@@ -65,15 +67,17 @@
   }
 
   .gear {
-    font-size: 18px;
-    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 40px;
-    text-align: right;
+    height: 40px;
+    color: var(--secondary);
   }
 
   .content {
     flex: 1;
-    padding: 8px 24px 0 24px;
+    padding: 4px 20px 0 20px;
   }
 
   .title-input {
@@ -81,10 +85,10 @@
     background: transparent;
     border: none;
     color: var(--ink);
-    font-size: 30px;
+    font-size: 24px;
     font-weight: 650;
     letter-spacing: -0.01em;
-    padding: 8px 0 16px 0;
+    padding: 4px 0 10px 0;
     font-family: inherit;
     outline: none;
     line-height: 1.25;
@@ -95,9 +99,9 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    padding-bottom: 14px;
+    padding-bottom: 10px;
     border-bottom: 1px solid var(--line);
-    margin-bottom: 20px;
+    margin-bottom: 14px;
   }
 
   .meta-row input[type="datetime-local"] {
@@ -108,17 +112,17 @@
     padding: 6px 0;
     font-family: inherit;
     outline: none;
-    width: 100%;
+    text-align: left;
   }
 
   .body-input {
     width: 100%;
-    min-height: 160px;
+    min-height: 70px;
     background: transparent;
     border: none;
     color: var(--ink);
     font-size: 17px;
-    line-height: 1.6;
+    line-height: 1.5;
     padding: 0;
     font-family: inherit;
     outline: none;
@@ -130,7 +134,7 @@
     font-size: 13px;
     font-weight: 600;
     color: var(--secondary);
-    margin: 28px 0 12px 0;
+    margin: 16px 0 10px 0;
   }
 
   .photo-grid {
@@ -180,7 +184,7 @@
   .photo-tile.add input { display: none; }
 
   .footer {
-    padding: 20px 24px 28px 24px;
+    padding: 12px 20px 20px 20px;
   }
 
   .publish-btn {
@@ -210,7 +214,7 @@
     line-height: 1.5;
     padding: 12px 14px;
     border-radius: 10px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
   .status-banner.show { display: block; }
   .status-banner.info { background: var(--accent-dim); color: var(--accent); }
@@ -281,14 +285,16 @@
 <div class="frame">
 
   <div class="topbar">
-    <button id="cancelBtn">Cancel</button>
     <span class="eyebrow">New Post</span>
-    <button class="gear" id="openSettings">⚙</button>
+    <button class="gear" id="openSettings" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+    </button>
   </div>
 
   <div class="content">
-
-    <div id="statusBanner" class="status-banner"></div>
 
     <input class="title-input" id="titleInput" placeholder="Title">
 
@@ -309,6 +315,7 @@
   </div>
 
   <div class="footer">
+    <div id="statusBanner" class="status-banner"></div>
     <button class="publish-btn" id="publishBtn">Publish</button>
     <div class="footer-note">Posts to your site with the Meow Gallery</div>
   </div>
@@ -360,7 +367,6 @@
     photoInput: document.getElementById('photoInput'),
     publishBtn: document.getElementById('publishBtn'),
     statusBanner: document.getElementById('statusBanner'),
-    cancelBtn: document.getElementById('cancelBtn'),
     openSettings: document.getElementById('openSettings'),
     closeSettings: document.getElementById('closeSettings'),
     settingsOverlay: document.getElementById('settingsOverlay'),
@@ -465,10 +471,6 @@
     } else {
       els.statusBanner.textContent = message;
     }
-  }
-
-  function hideStatus() {
-    els.statusBanner.className = 'status-banner';
   }
 
   function resetForm() {
@@ -610,13 +612,6 @@
       showStatus(msg, 'error');
     } finally {
       els.publishBtn.disabled = false;
-    }
-  });
-
-  els.cancelBtn.addEventListener('click', function () {
-    if (confirm('Discard this post?')) {
-      resetForm();
-      hideStatus();
     }
   });
 
