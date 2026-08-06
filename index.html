@@ -13,7 +13,7 @@
   :root {
     --bg: #FAFAF8;
     --ink: #181816;
-    --secondary: #8A8680;
+    --secondary: #736D63;
     --line: #EDEAE4;
     --accent: #5B7A6D;
     --accent-dim: #eef2f0;
@@ -93,7 +93,7 @@
     outline: none;
     line-height: 1.25;
   }
-  .title-input::placeholder { color: #C7C3BB; }
+  .title-input::placeholder { color: var(--secondary); }
 
   .meta-row {
     display: flex;
@@ -128,7 +128,7 @@
     outline: none;
     resize: none;
   }
-  .body-input::placeholder { color: #C7C3BB; }
+  .body-input::placeholder { color: var(--secondary); }
 
   .section-label {
     font-size: 13px;
@@ -317,7 +317,6 @@
   <div class="footer">
     <div id="statusBanner" class="status-banner"></div>
     <button class="publish-btn" id="publishBtn">Publish</button>
-    <div class="footer-note">Posts to your site with the Meow Gallery</div>
   </div>
 
 </div>
