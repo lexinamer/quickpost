@@ -66,7 +66,7 @@
     font-weight: 600;
   }
 
-  .gear {
+  .icon-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -236,7 +236,10 @@
   .overlay-inner {
     max-width: 480px;
     margin: 0 auto;
-    padding: 18px 24px 24px 24px;
+  }
+
+  .overlay-body {
+    padding: 0 20px 24px 20px;
   }
 
   .field-label {
@@ -286,7 +289,7 @@
 
   <div class="topbar">
     <span class="eyebrow">New Post</span>
-    <button class="gear" id="openSettings" aria-label="Settings">
+    <button class="icon-btn" id="openSettings" aria-label="Settings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
         <circle cx="12" cy="12" r="3"></circle>
         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -324,33 +327,32 @@
 <!-- Settings overlay -->
 <div class="overlay" id="settingsOverlay">
   <div class="overlay-inner">
-    <div class="topbar" style="padding-left:0;padding-right:0;">
-      <button id="closeSettings">Close</button>
+    <div class="topbar">
       <span class="eyebrow">Settings</span>
-      <span style="width:40px"></span>
+      <button class="icon-btn" id="closeSettings" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
     </div>
 
-    <div class="field-label">Site URL</div>
-    <input class="settings-input" id="siteUrlInput" placeholder="https://yoursite.com" autocapitalize="off" autocorrect="off">
+    <div class="overlay-body">
+      <div class="field-label">Site URL</div>
+      <input class="settings-input" id="siteUrlInput" placeholder="https://yoursite.com" autocapitalize="off" autocorrect="off">
 
-    <div class="field-label">Username</div>
-    <input class="settings-input" id="usernameInput" placeholder="your WordPress username" autocapitalize="off" autocorrect="off">
+      <div class="field-label">Username</div>
+      <input class="settings-input" id="usernameInput" placeholder="your WordPress username" autocapitalize="off" autocorrect="off">
 
-    <div class="field-label">Application Password</div>
-    <input class="settings-input" id="appPasswordInput" placeholder="xxxx xxxx xxxx xxxx xxxx xxxx" autocapitalize="off" autocorrect="off">
+      <div class="field-label">Application Password</div>
+      <input class="settings-input" id="appPasswordInput" placeholder="xxxx xxxx xxxx xxxx xxxx xxxx" autocapitalize="off" autocorrect="off">
 
-    <div class="help-text">
-      Generate this under Users → Profile → Application Passwords in your WordPress admin. Stored only on this device, in this browser.
+      <div class="help-text">
+        Generate this under Users → Profile → Application Passwords in your WordPress admin. Stored only on this device, in this browser.
+      </div>
+
+      <button class="save-btn" id="saveSettings">Save</button>
     </div>
-
-    <div class="help-text" style="margin-top:20px;">
-      <strong style="color:var(--ink);">Recommended setup</strong><br>
-      • Use a dedicated Author or Editor account for this app — not your Admin login<br>
-      • Lock CORS on your site to this app's exact URL, not a wildcard<br>
-      • Revoke the application password from your WordPress profile any time you stop using this app
-    </div>
-
-    <button class="save-btn" id="saveSettings">Save</button>
   </div>
 </div>
 
