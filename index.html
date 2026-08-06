@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Post</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="theme-color" content="#5B7A6D">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <style>
   :root {
     --bg: #FAFAF8;
@@ -434,6 +439,7 @@
       removeBtn.textContent = '×';
       removeBtn.addEventListener('click', function (e) {
         e.preventDefault();
+        URL.revokeObjectURL(p.url);
         photos.splice(idx, 1);
         renderPhotos();
       });
@@ -468,6 +474,7 @@
   function resetForm() {
     els.title.value = '';
     els.body.value = '';
+    photos.forEach(p => URL.revokeObjectURL(p.url));
     photos = [];
     renderPhotos();
     els.date.value = toLocalDatetimeValue(new Date());
@@ -509,8 +516,10 @@
       content += (content ? '\n\n' : '') + '[gallery ids="' + mediaIds.join(',') + '"]';
     }
 
-    const dateValue = els.date.value; // e.g. 2026-08-06T14:12
-    const dateFormatted = dateValue.length === 16 ? dateValue + ':00' : dateValue;
+    // els.date.value has no timezone offset, so the browser parses it as this
+    // device's local time — convert to UTC ourselves rather than relying on
+    // the WordPress site's configured timezone to match the phone's.
+    const dateGmt = new Date(els.date.value).toISOString().slice(0, 19);
 
     const res = await fetch(settings.siteUrl + '/wp-json/wp/v2/posts', {
       method: 'POST',
@@ -521,7 +530,7 @@
       body: JSON.stringify({
         title: els.title.value.trim() || '(Untitled)',
         content: content,
-        date: dateFormatted,
+        date_gmt: dateGmt,
         status: 'publish',
       }),
     });
@@ -547,6 +556,12 @@
       return;
     }
 
+    if (!/^https:\/\//i.test(settings.siteUrl)) {
+      showStatus('Site URL must start with https:// so your password isn\'t sent in plain text.', 'error');
+      openSettingsPanel();
+      return;
+    }
+
     if (!els.title.value.trim() && !els.body.value.trim() && photos.length === 0) {
       showStatus('Nothing to publish yet.', 'error');
       return;
@@ -555,11 +570,12 @@
     els.publishBtn.disabled = true;
 
     try {
-      const mediaIds = [];
       for (let i = 0; i < photos.length; i++) {
-        const id = await uploadPhoto(settings, photos[i].file, i, photos.length);
-        mediaIds.push(id);
+        if (photos[i].mediaId == null) {
+          photos[i].mediaId = await uploadPhoto(settings, photos[i].file, i, photos.length);
+        }
       }
+      const mediaIds = photos.map(p => p.mediaId);
 
       const post = await createPost(settings, mediaIds);
 

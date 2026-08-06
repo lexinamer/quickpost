@@ -1,0 +1,11 @@
+{
+  "name": "QuickPost",
+  "short_name": "QuickPost",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFAF8",
+  "theme_color": "#5B7A6D",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
