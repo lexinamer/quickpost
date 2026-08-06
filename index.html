@@ -508,13 +508,30 @@
     return json.id;
   }
 
+  function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // Wrap body text and the gallery shortcode as real Gutenberg blocks so the
+  // post opens as editable blocks instead of one raw "Classic" text blob.
+  function buildParagraphBlocks(text) {
+    return text.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean).map(p =>
+      '<!-- wp:paragraph -->\n<p>' + escapeHtml(p).replace(/\n/g, '<br>') + '</p>\n<!-- /wp:paragraph -->'
+    ).join('\n\n');
+  }
+
+  function buildGalleryShortcodeBlock(mediaIds) {
+    return '<!-- wp:shortcode -->\n[gallery ids="' + mediaIds.join(',') + '"]\n<!-- /wp:shortcode -->';
+  }
+
   async function createPost(settings, mediaIds) {
     showStatus('Publishing post…', 'info');
 
-    let content = els.body.value.trim();
-    if (mediaIds.length) {
-      content += (content ? '\n\n' : '') + '[gallery ids="' + mediaIds.join(',') + '"]';
-    }
+    const bodyText = els.body.value.trim();
+    const parts = [];
+    if (bodyText) parts.push(buildParagraphBlocks(bodyText));
+    if (mediaIds.length) parts.push(buildGalleryShortcodeBlock(mediaIds));
+    const content = parts.join('\n\n');
 
     // els.date.value has no timezone offset, so the browser parses it as this
     // device's local time — convert to UTC ourselves rather than relying on
