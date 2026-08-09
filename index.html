@@ -188,8 +188,9 @@
     border-radius: 10px;
     background: #EFECE6;
     overflow: hidden;
+    touch-action: none;
   }
-  .photo-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-tile img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
 
   .photo-tile .remove {
     position: absolute;
@@ -206,6 +207,21 @@
     border: none;
     padding: 0;
   }
+
+  .photo-tile.dragging-placeholder { opacity: 0.35; }
+
+  .photo-tile-ghost {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    pointer-events: none;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(24,24,22,0.25);
+    transform: scale(1.05);
+  }
+  .photo-tile-ghost img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
   .footer {
     padding: 12px 20px 20px 20px;
@@ -428,9 +444,10 @@
   // Photo handling
   function renderPhotos() {
     els.photoGrid.innerHTML = '';
-    photos.forEach((p, idx) => {
+    photos.forEach((p) => {
       const tile = document.createElement('div');
       tile.className = 'photo-tile';
+      tile.photoRef = p;
       const img = document.createElement('img');
       img.src = p.url;
       const removeBtn = document.createElement('button');
@@ -439,14 +456,112 @@
       removeBtn.addEventListener('click', function (e) {
         e.preventDefault();
         URL.revokeObjectURL(p.url);
-        photos.splice(idx, 1);
+        photos = photos.filter(x => x !== p);
         renderPhotos();
       });
       tile.appendChild(img);
       tile.appendChild(removeBtn);
+      makeDraggable(tile, p);
       els.photoGrid.appendChild(tile);
     });
   }
+
+  // Drag-to-reorder for photo tiles. Uses Pointer Events (not the HTML5
+  // Drag and Drop API, which iOS Safari doesn't support for touch) — a
+  // floating ghost follows the finger/pointer while the real tile is moved
+  // live via insertBefore so the CSS grid reflows the other tiles naturally.
+  let dragState = null;
+
+  function makeDraggable(tile, photo) {
+    tile.addEventListener('pointerdown', function (e) {
+      if (e.target.closest('.remove')) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      const rect = tile.getBoundingClientRect();
+      dragState = {
+        tile: tile,
+        pointerId: e.pointerId,
+        offsetX: e.clientX - rect.left,
+        offsetY: e.clientY - rect.top,
+        width: rect.width,
+        height: rect.height,
+        startX: e.clientX,
+        startY: e.clientY,
+        moved: false,
+        ghost: null,
+      };
+    });
+  }
+
+  function positionGhost(x, y) {
+    dragState.ghost.style.left = (x - dragState.offsetX) + 'px';
+    dragState.ghost.style.top = (y - dragState.offsetY) + 'px';
+  }
+
+  function startDrag(photo, x, y) {
+    const ghost = document.createElement('div');
+    ghost.className = 'photo-tile-ghost';
+    ghost.style.width = dragState.width + 'px';
+    ghost.style.height = dragState.height + 'px';
+    const img = document.createElement('img');
+    img.src = photo.url;
+    ghost.appendChild(img);
+    document.body.appendChild(ghost);
+    dragState.ghost = ghost;
+    dragState.tile.classList.add('dragging-placeholder');
+    positionGhost(x, y);
+  }
+
+  function tileUnderPoint(x, y, excludeTile) {
+    const tiles = Array.from(els.photoGrid.querySelectorAll('.photo-tile'));
+    for (const t of tiles) {
+      if (t === excludeTile) continue;
+      const r = t.getBoundingClientRect();
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return t;
+    }
+    return null;
+  }
+
+  document.addEventListener('pointermove', function (e) {
+    if (!dragState || e.pointerId !== dragState.pointerId) return;
+
+    if (!dragState.moved) {
+      const dx = e.clientX - dragState.startX;
+      const dy = e.clientY - dragState.startY;
+      if (Math.hypot(dx, dy) < 6) return;
+      dragState.moved = true;
+      dragState.tile.setPointerCapture(dragState.pointerId);
+      startDrag(dragState.tile.photoRef, e.clientX, e.clientY);
+    }
+
+    e.preventDefault();
+    positionGhost(e.clientX, e.clientY);
+
+    const target = tileUnderPoint(e.clientX, e.clientY, dragState.tile);
+    if (target) {
+      const tiles = Array.from(els.photoGrid.children);
+      const dragIdx = tiles.indexOf(dragState.tile);
+      const targetIdx = tiles.indexOf(target);
+      if (dragIdx < targetIdx) {
+        els.photoGrid.insertBefore(dragState.tile, target.nextSibling);
+      } else {
+        els.photoGrid.insertBefore(dragState.tile, target);
+      }
+    }
+  }, { passive: false });
+
+  function endDrag(e) {
+    if (!dragState) return;
+    if (dragState.moved) {
+      dragState.tile.releasePointerCapture(dragState.pointerId);
+      dragState.tile.classList.remove('dragging-placeholder');
+      dragState.ghost.remove();
+      photos = Array.from(els.photoGrid.querySelectorAll('.photo-tile')).map(t => t.photoRef);
+    }
+    dragState = null;
+  }
+
+  document.addEventListener('pointerup', endDrag);
+  document.addEventListener('pointercancel', endDrag);
 
   els.photoInput.addEventListener('change', function (e) {
     const files = Array.from(e.target.files || []);
