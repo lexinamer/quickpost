@@ -616,13 +616,23 @@
     }
   }
 
+  // HTTP header values only allow a narrow ASCII range — a filename with
+  // emoji, accented characters, or anything else outside that (common from
+  // Photos/Messages/AirDrop-sourced files) makes Safari's fetch() reject the
+  // whole request with "The string did not match the expected pattern"
+  // before it's even sent, rather than a normal upload failure.
+  function safeFilename(name) {
+    const cleaned = name.replace(/[^\x20-\x7E]/g, '').replace(/["\\]/g, '').trim();
+    return cleaned || 'photo.jpg';
+  }
+
   async function uploadPhoto(settings, file, index, total) {
     showStatus('Uploading photo ' + (index + 1) + ' of ' + total + '…', 'info');
     const res = await fetch(settings.siteUrl + '/wp-json/wp/v2/media', {
       method: 'POST',
       headers: {
         'Authorization': authHeader(settings),
-        'Content-Disposition': 'attachment; filename="' + file.name.replace(/"/g, '') + '"',
+        'Content-Disposition': 'attachment; filename="' + safeFilename(file.name) + '"',
         'Content-Type': file.type || 'application/octet-stream',
       },
       body: file,
