@@ -596,16 +596,23 @@
   }
 
   // WordPress usually returns JSON on failure, but a hard server-side fatal
-  // (PHP timeout, memory exhausted, etc.) often returns an HTML error page
-  // instead — fall back to the raw response text so failures are never
-  // silently blank.
+  // (PHP timeout, memory exhausted, etc.) often returns WordPress's own
+  // "critical error" HTML page instead — strip it down to visible text
+  // rather than dumping raw markup, since the actual message is buried
+  // after a large <style> block that would otherwise eat the whole preview.
   async function errorDetail(res) {
     const text = await res.text();
     try {
       const j = JSON.parse(text);
       return j.message || text.slice(0, 300);
     } catch (e) {
-      return text.slice(0, 300) || '(no response body)';
+      const stripped = text
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      return stripped.slice(0, 400) || '(no response body)';
     }
   }
 
