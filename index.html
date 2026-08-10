@@ -656,8 +656,13 @@
     ).join('\n\n');
   }
 
-  function buildGalleryShortcodeBlock(mediaIds) {
-    return '<!-- wp:shortcode -->\n[gallery ids="' + mediaIds.join(',') + '"]\n<!-- /wp:shortcode -->';
+  // Emits the actual meow-gallery/gallery block (attributes reverse-engineered
+  // from the plugin's own admin.js) instead of wrapping [gallery ids="..."] in
+  // a generic core/shortcode block — the generic block always shows as raw
+  // shortcode text in the editor, regardless of which shortcode it holds.
+  function buildGalleryBlock(mediaIds) {
+    const attrs = JSON.stringify({ images: mediaIds.map(id => ({ id: id })) });
+    return '<!-- wp:meow-gallery/gallery ' + attrs + ' /-->';
   }
 
   async function createPost(settings, mediaIds) {
@@ -666,7 +671,7 @@
     const bodyText = els.body.value.trim();
     const parts = [];
     if (bodyText) parts.push(buildParagraphBlocks(bodyText));
-    if (mediaIds.length) parts.push(buildGalleryShortcodeBlock(mediaIds));
+    if (mediaIds.length) parts.push(buildGalleryBlock(mediaIds));
     const content = parts.join('\n\n');
 
     // The date picker only collects a calendar date (no time-of-day UI), so
