@@ -595,6 +595,20 @@
     return 'Basic ' + token;
   }
 
+  // WordPress usually returns JSON on failure, but a hard server-side fatal
+  // (PHP timeout, memory exhausted, etc.) often returns an HTML error page
+  // instead — fall back to the raw response text so failures are never
+  // silently blank.
+  async function errorDetail(res) {
+    const text = await res.text();
+    try {
+      const j = JSON.parse(text);
+      return j.message || text.slice(0, 300);
+    } catch (e) {
+      return text.slice(0, 300) || '(no response body)';
+    }
+  }
+
   async function uploadPhoto(settings, file, index, total) {
     showStatus('Uploading photo ' + (index + 1) + ' of ' + total + '…', 'info');
     const res = await fetch(settings.siteUrl + '/wp-json/wp/v2/media', {
@@ -607,12 +621,7 @@
       body: file,
     });
     if (!res.ok) {
-      let detail = '';
-      try {
-        const j = await res.json();
-        detail = j.message || '';
-      } catch (e) {}
-      throw new Error('Photo upload failed (' + res.status + '). ' + detail);
+      throw new Error('Photo upload failed (' + res.status + '). ' + await errorDetail(res));
     }
     const json = await res.json();
     return json.id;
@@ -667,12 +676,7 @@
     });
 
     if (!res.ok) {
-      let detail = '';
-      try {
-        const j = await res.json();
-        detail = j.message || '';
-      } catch (e) {}
-      throw new Error('Publishing failed (' + res.status + '). ' + detail);
+      throw new Error('Publishing failed (' + res.status + '). ' + await errorDetail(res));
     }
 
     return res.json();
