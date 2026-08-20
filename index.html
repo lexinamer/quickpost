@@ -656,13 +656,18 @@
     ).join('\n\n');
   }
 
-  // Emits the actual meow-gallery/gallery block (attributes reverse-engineered
-  // from the plugin's own admin.js) instead of wrapping [gallery ids="..."] in
-  // a generic core/shortcode block — the generic block always shows as raw
-  // shortcode text in the editor, regardless of which shortcode it holds.
+  // Emits the actual meow-gallery/gallery block instead of wrapping
+  // [gallery ids="..."] in a generic core/shortcode block (which always
+  // shows as raw shortcode text in the editor, regardless of what's inside
+  // it). Attributes and saved HTML are reverse-engineered from the plugin's
+  // own admin.js: its save() renders <div class="wp-block-meow-gallery-gallery">
+  // plus the shortcode text rebuilt from attributes — WordPress validates
+  // this against a fresh save() call, so it has to match byte-for-byte, not
+  // just be "close enough".
   function buildGalleryBlock(mediaIds) {
     const attrs = JSON.stringify({ images: mediaIds.map(id => ({ id: id })) });
-    return '<!-- wp:meow-gallery/gallery ' + attrs + ' /-->';
+    const shortcode = '[gallery ids="' + mediaIds.join(',') + '"]';
+    return '<!-- wp:meow-gallery/gallery ' + attrs + ' -->\n<div class="wp-block-meow-gallery-gallery">' + shortcode + '</div>\n<!-- /wp:meow-gallery/gallery -->';
   }
 
   async function createPost(settings, mediaIds) {
